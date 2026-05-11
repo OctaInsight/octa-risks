@@ -141,7 +141,7 @@ tabs = st.tabs([
     f"📋 All ({all_count})",
 ])
 
-def _render_risks(risk_list):
+def _render_risks(risk_list, tab_key="t"):
     if not risk_list:
         st.info("No risks in this category.")
         return
@@ -227,7 +227,7 @@ def _render_risks(risk_list):
                         + f"</div>", unsafe_allow_html=True)
 
             with ec2:
-                with st.form(f"edit_risk_{rid}"):
+                with st.form(f"edit_risk_{rid}_{tab_key}"):
                     er1,er2 = st.columns([1,3])
                     with er1: e_rnum   = st.text_input("ID", value=rnum)
                     with er2: e_rtitle = st.text_input("Title", value=rtitle)
@@ -237,34 +237,34 @@ def _render_risks(risk_list):
                     with erl1:
                         e_like = st.selectbox("Likelihood", LIKELIHOOD_OPTS,
                             index=LIKELIHOOD_OPTS.index(like) if like in LIKELIHOOD_OPTS else 1,
-                            format_func=str.title, key=f"elike_{rid}")
+                            format_func=str.title, key=f"elike_{rid}_{tab_key}")
                     with erl2:
                         e_sev = st.selectbox("Severity", SEVERITY_OPTS,
                             index=SEVERITY_OPTS.index(sev) if sev in SEVERITY_OPTS else 1,
-                            format_func=str.title, key=f"esev_{rid}")
+                            format_func=str.title, key=f"esev_{rid}_{tab_key}")
 
-                    e_mit  = st.text_area("Mitigation", value=r.get("mitigation_strategy",""), height=55, key=f"emit_{rid}")
-                    e_cont = st.text_area("Contingency", value=r.get("contingency_plan",""), height=40, key=f"econt_{rid}")
+                    e_mit  = st.text_area("Mitigation", value=r.get("mitigation_strategy",""), height=55, key=f"emit_{rid}_{tab_key}")
+                    e_cont = st.text_area("Contingency", value=r.get("contingency_plan",""), height=40, key=f"econt_{rid}_{tab_key}")
 
                     e_wps = st.multiselect("Related WPs", list(wp_opts.keys()),
                         default=[l for l,v in wp_opts.items() if v in linked],
-                        key=f"ewps_{rid}")
+                        key=f"ewps_{rid}_{tab_key}")
 
                     e_status = st.selectbox("Status", RISK_STATUS_OPTS,
                         index=RISK_STATUS_OPTS.index(status) if status in RISK_STATUS_OPTS else 0,
-                        format_func=str.title, key=f"estat_{rid}")
+                        format_func=str.title, key=f"estat_{rid}_{tab_key}")
 
                     cat_labels2 = [c[1] for c in RISK_CATEGORIES]
                     cur_cat_idx = [c[0] for c in RISK_CATEGORIES].index(cat) if cat in [c[0] for c in RISK_CATEGORIES] else 0
-                    e_cat_sel   = st.selectbox("Category", cat_labels2, index=cur_cat_idx, key=f"ecat_{rid}")
+                    e_cat_sel   = st.selectbox("Category", cat_labels2, index=cur_cat_idx, key=f"ecat_{rid}_{tab_key}")
                     e_cat       = [c[0] for c in RISK_CATEGORIES][cat_labels2.index(e_cat_sel)]
 
-                    e_mat = st.checkbox("Risk materialized", value=bool(materialized), key=f"emat_{rid}")
+                    e_mat = st.checkbox("Risk materialized", value=bool(materialized), key=f"emat_{rid}_{tab_key}")
                     e_impact = ""
                     if e_mat:
-                        e_impact = st.text_area("Actual Impact", value=r.get("actual_impact",""), height=50, key=f"eimp_{rid}")
+                        e_impact = st.text_area("Actual Impact", value=r.get("actual_impact",""), height=50, key=f"eimp_{rid}_{tab_key}")
 
-                    e_person = st.text_input("Responsible Person", value=r.get("responsible_person",""), key=f"eperson_{rid}")
+                    e_person = st.text_input("Responsible Person", value=r.get("responsible_person",""), key=f"eperson_{rid}_{tab_key}")
 
                     sc1,sc2 = st.columns(2)
                     with sc1:
@@ -294,8 +294,8 @@ def _render_risks(risk_list):
                             delete_risk(rid); st.rerun()
 
 with tabs[0]:
-    _render_risks([r for r in risks_sorted if r.get("status") not in ("closed","mitigated")])
+    _render_risks([r for r in risks_sorted if r.get("status") not in ("closed","mitigated")], "active")
 with tabs[1]:
-    _render_risks([r for r in risks_sorted if r.get("status") in ("closed","mitigated")])
+    _render_risks([r for r in risks_sorted if r.get("status") in ("closed","mitigated")], "closed")
 with tabs[2]:
-    _render_risks(risks_sorted)
+    _render_risks(risks_sorted, "all")
